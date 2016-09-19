@@ -15,8 +15,8 @@ class ImagerExtension extends Nette\DI\CompilerExtension
     private $defaults =  [
         'width'         => 225,
         'height'        => 150,
-        'wwwDir'        => WWW_DIR, // todo
-        'path'          => '/img/office/18',
+        'wwwDir'        => __DIR__ . '../www',
+        'path'          => 'img/',
         'useTimestamp'  => true,
         'allowDelete'   => true,
         'emptyReturn'   => '',
@@ -42,7 +42,7 @@ class ImagerExtension extends Nette\DI\CompilerExtension
 
         $init = $class->methods['initialize'];
         $config = $this->getConfig($this->defaults);
-        $init->addBody('\App\Components\Imager\ImageUploadControl::register(?, ?);', ['addImagerUpload', $config]);
+        $init->addBody('\App\Components\Imager\ImageSlaveControl::register(?, ?);', ['addImagerUpload', $config]);
     }
 
 }

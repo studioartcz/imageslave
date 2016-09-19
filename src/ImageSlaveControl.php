@@ -248,6 +248,7 @@ class ImageSlaveControl extends Nette\Forms\Controls\BaseControl
                     'class'  => $this->options['lightboxClass'],
                     'href'   => $original,
                     'target' => '_blank',
+                    'title'  => $this->options['lang']['zoom']
                 ]
             );
 
