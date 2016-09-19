@@ -7,14 +7,14 @@ use Nette\Http\FileUpload;
 use Nette\Utils\Html;
 use Nette\Application\UI\Form;
 use Nette\Forms\Container;
-use App\Components\Imager;
+use App\Components\ImageSlave;
 
 /**
  * Description of Imager
  *
  * @author Michal Landsman <landsman@studioart.cz>
  */
-class ImageUploadControl extends Nette\Forms\Controls\BaseControl
+class ImageSlaveControl extends Nette\Forms\Controls\BaseControl
 {
     /**
      * @var array
@@ -324,7 +324,7 @@ class ImageUploadControl extends Nette\Forms\Controls\BaseControl
      */
     public function drawThumb()
     {
-        return Imager::getThumbnail($this->getValue(), $this->options['width'], $this->options['height']);
+        return ImageSlave::getThumbnail($this->getValue(), $this->options['width'], $this->options['height']);
     }
 
     /**
@@ -348,11 +348,11 @@ class ImageUploadControl extends Nette\Forms\Controls\BaseControl
      * @param string $method
      * @param $config
      */
-    public static function register($method = 'addImagerUpload', $config)
+    public static function register($method = 'addImageSlave', $config)
     {
         Container::extensionMethod($method, function(Container $container, $name, $label) use ($config)
         {
-            $container[$name] = new ImageUploadControl($name, $label, $config);
+            $container[$name] = new ImageSlaveControl($name, $label, $config);
             return $container[$name];
         });
     }

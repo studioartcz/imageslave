@@ -5,7 +5,7 @@ namespace App\Components;
 use Nette;
 use Nette\Utils\Image;
 
-class Imager
+class ImageSlave
 {
     /**
      * todo: move to config
@@ -130,7 +130,7 @@ class Imager
         // if not exists local copy
         if(!file_exists($local_file) || $reload)
         {
-            Imager::downloadImage($file, $local_file);
+            self::downloadImage($file, $local_file);
         }
 
         // create thumb
