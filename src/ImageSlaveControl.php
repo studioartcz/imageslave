@@ -2,6 +2,7 @@
 
 namespace App\Form\Control;
 
+use Latte\Engine;
 use Nette;
 use Nette\Http\FileUpload;
 use Nette\Utils\Html;
@@ -16,8 +17,9 @@ use App\Components\ImageSlave;
  */
 class ImageSlaveControl extends Nette\Forms\Controls\BaseControl
 {
+
     /**
-     * @var array
+     * @var
      */
     private $file;
 
@@ -27,41 +29,45 @@ class ImageSlaveControl extends Nette\Forms\Controls\BaseControl
     private $name;
 
     /**
-     * @var string
-     */
-    private $hidden;
-
-    /**
-     * @var string
-     */
-    private $delete;
-
-    /**
      * @var array
      */
     private $options;
 
     /**
-     * @var
-     */
-    private $request;
-
-    /**
      * ImageUploadControl constructor.
      * @param null $name
      * @param null $label
+     * @param bool $multiple
      * @param $config
      */
-    public function __construct($name = null, $label = NULL, $config)
+    public function __construct($name = null, $label = NULL, $multiple = FALSE, $config)
     {
         parent::__construct($label);
-        $this->monitor(Nette\Forms\Container::class);
-        //$this->control->type     = 'file';
-        //$this->control->multiple = false;
+        $this->control->type = 'file';
+        $this->control->multiple = (bool) $multiple;
+        $this->setOption('type', 'file');
         $this->name = $name;
         $this->options = $config;
-
     }
+
+
+    /**
+     * This method will be called when the component (or component's parent)
+     * becomes attached to a monitored object. Do not call this method yourself.
+     * @param  Nette\ComponentModel\IComponent
+     * @return void
+     */
+    protected function attached($form)
+    {
+        if ($form instanceof Nette\Forms\Form) {
+            if (!$form->isMethod('post')) {
+                throw new Nette\InvalidStateException('File upload requires method POST.');
+            }
+            $form->getElementPrototype()->enctype = 'multipart/form-data';
+        }
+        parent::attached($form);
+    }
+
 
     public function setPath($path)
     {
@@ -83,25 +89,6 @@ class ImageSlaveControl extends Nette\Forms\Controls\BaseControl
         $this->options['valueFormat'] = $format;
     }
 
-    /**
-     * Todo: is good??
-     * This method will be called when the component (or component's parent)
-     * becomes attached to a monitored object. Do not call this method yourself.
-     * @param  Nette\ComponentModel\IComponent
-     * @return void
-     */
-
-    protected function attached($form)
-    {
-        if ($form instanceof Form) {
-            if ($form->getMethod() !== Form::POST) {
-                throw new Nette\InvalidStateException('File upload requires method POST.');
-            }
-            $form->getElementPrototype()->enctype = 'multipart/form-data';
-        }
-        parent::attached($form);
-    }
-
 
     /**
      * Loads HTTP data.
@@ -109,57 +96,30 @@ class ImageSlaveControl extends Nette\Forms\Controls\BaseControl
      */
     public function loadHttpData()
     {
-        $this->request  = $this->getForm()->getHttpData();
-        $this->file     = $this->getHttpData(Form::DATA_FILE);
-        $this->hidden   = $this->getForm()->getHttpData(Form::DATA_LINE, $this->getActualContainer($this->options['hiddenName']));
-        $this->delete   = $this->getForm()->getHttpData(Form::DATA_LINE, $this->getActualContainer($this->options['deleteName']));
-
-        /**
-         * upload picture
-         */
-        if ($this->file !== NULL)
-        {
-            $path = $this->options['path'] . "/" . ($this->options['useTimestamp'] ? time() . "_" : "") . $this->file->getName();
-            $this->file->move($this->options['wwwDir'] .  "/"  . $path);
-
-            /**
-             * rewriting picture, old remove
-             */
-            if(!empty($this->hidden))
-            {
-                $this->deleteImage();
-            }
-
-            $this->setValue($path);
-            $this->hidden = $path;
+        $this->file = $this->getHttpData(Form::DATA_FILE, '[file]');
+        $delete = $this->getHttpData(Form::DATA_LINE, '[delete]');
+        if ($this->file === NULL) {
+            $this->file = new FileUpload(NULL);
         }
 
-        /**
-         * just deleting
-         */
-        if(!empty($this->delete) && !empty($this->hidden))
+        dump($this->file);
+        dump($delete);
+
+        if ($delete === 'on')
         {
             $this->deleteImage();
+            $this->value = $this->options['emptyReturn'];
+        } else {
+            // TODO: return value is not complete
+            $this->value = [
+                'path' => '',
+                'folder' => '',
+                'filename' => '',
+            ];
         }
 
-        /**
-         * no changes
-         */
-        if(empty($this->delete))
-        {
-            $this->setValue(!empty($this->hidden) ? $this->hidden : $this->options['emptyReturn']);
-        }
     }
 
-    /**
-     * Deleting by hidden input
-     */
-    public function deleteImage()
-    {
-        $this->setValue($this->options['emptyReturn']);
-        unlink($this->options['wwwDir'] . $this->hidden);
-        $this->hidden = null;
-    }
 
     /**
      * Returns HTML name of control.
@@ -170,47 +130,40 @@ class ImageSlaveControl extends Nette\Forms\Controls\BaseControl
         return parent::getHtmlName() . ($this->control->multiple ? '[]' : '');
     }
 
-    /**
-     * Name hack for more than one form item
-     * @param $name
-     * @param $withoutContainers
-     * @return mixed
-     */
-    public function getHTMLNameHack($name, $withoutContainers = false)
-    {
-        $parent = $this->getHTMLName();
-        preg_match('~.*\K\[(.*)\]~s', $parent, $results);
-        return $withoutContainers ? $results[1] . "_" . $name : str_replace($results[1], $results[1] . "_" . $name, $parent);
-    }
-
-    public function getActualContainer($name = "")
-    {
-        $parent = $this->getHTMLName();
-        preg_match('~.*\K\[(.*)\]~s', $parent, $results);
-        $r = str_replace($results[0], '', $parent);
-        return $name ? $r . "[{$name}]" : $r;
-    }
 
     /**
-     * @param $value
      * @return self
+     * @internal
      */
     public function setValue($value)
     {
-        $this->value = $value;
         return $this;
     }
 
+
     /**
-     * Sets control's default value.
-     * @param $value
-     * @return self
+     * Generates control's HTML element.
+     * @param  string
+     * @return Html|string
      */
-    public function setDefaultValue($value)
+    public function getControl()
     {
-        $this->setValue($value);
-        return $this;
+        $this->setOption('rendered', TRUE);
+        $latte = new Engine;
+        return $latte->renderToString(__DIR__.'/control.latte', [
+            'name' => $this->name
+        ]);
     }
+
+    /**
+     * Deleting by hidden input
+     */
+    public function deleteImage()
+    {
+        // TODO: delete is not complete
+//        unlink($this->options['wwwDir'] . $this->hidden);
+    }
+
 
     /**
      * Has been any file uploaded?
@@ -221,104 +174,20 @@ class ImageSlaveControl extends Nette\Forms\Controls\BaseControl
         return $this->getValue() instanceof FileUpload ? $this->getValue()->isOk() : (bool) $this->getValue(); // ignore NULL object
     }
 
+
     /**
-     * Generates control's HTML element.
-     * @param  string
-     * @return Nette\Utils\Html
+     * Have been all files succesfully uploaded?
+     * @return bool
      */
-    public function getControl($caption = NULL)
+    public function isOk()
     {
-        $this->setOption('rendered', TRUE);
-
-        $wrapper = Html::el('div', [
-            'class' => $this->options['wrapperClass']
-        ]);
-        $output = $wrapper->startTag();
-        $name   = $this->getHtmlName();
-
-        if($this->getValue())
-        {
-            /**
-             * Link to original preview
-             */
-            $original = (strpos($this->getValue(), ":") === false ? '.' . $this->getValue() : $this->getValue());
-            $link = Html::el('a',
-                [
-                    'id'     => $this->getHtmlName(),
-                    'class'  => $this->options['lightboxClass'],
-                    'href'   => $original,
-                    'target' => '_blank',
-                    'title'  => $this->options['lang']['zoom']
-                ]
-            );
-
-            /**
-             * If we have SVG picture
-             */
-            if(strpos($this->getValue(), ".svg") !== false)
-            {
-                $content    = $this->drawSvg();
-                $img        = Html::el('div', ["class" => "svg-wrappper"])->setHtml($content);
-            }
-            else
-            {
-                $img = Html::el('img',
-                    [
-                        'src'   => $this->drawThumb(),
-                        'class' => $this->options['thumbClass']
-                    ]
-                );
-            }
-            $output.= $link->startTag() . $img . $link->endTag();
-        }
-
-
-        /**
-         * Delete by checkbox
-         */
-        if($this->getValue() && $this->options['allowDelete'])
-        {
-            $wrapperD = Html::el('div');
-            $label = Html::el('label',
-                [
-                    'class' => $this->options['deleteLabelClass'],
-                    'style' => $this->options['deleteLabelStyle'],
-                ]
-            );
-            $title = Html::el('span')->setText($this->options['lang']['delete']);
-            $checkbox = Html::el('input',
-                [
-                    'type'  => 'checkbox',
-                    'name'  => $this->getActualContainer($this->options['deleteName']),
-                    'class' => $this->options['deleteCheckboxClass'],
-                ]
-            );
-            $delete = $label->startTag() . $checkbox . $title . $label->endTag();
-            $output.= $wrapperD->startTag() . $delete . $wrapperD->endTag();
-        }
-
-        /**
-         * Uploader
-         */
-        $file = Html::el('input',
-            [
-                'type'  => 'file',
-                'name'  => $name,
-                'class' => $this->options['uploadClass']
-            ]
-        );
-        $hidden = Html::el('input',
-            [
-                'type'  => 'hidden',
-                'name'  => $this->getActualContainer($this->options['hiddenName']),
-                'value' => $this->getValue()
-            ]
-        );
-
-        $output.= $file . $hidden .  $wrapper->endTag();
-
-        return $output;
+        return $this->value instanceof FileUpload
+            ? $this->value->isOk()
+            : $this->value && array_reduce($this->value, function ($carry, $fileUpload) {
+                return $carry && $fileUpload->isOk();
+            }, TRUE);
     }
+    
 
     /**
      * @return string
@@ -351,9 +220,13 @@ class ImageSlaveControl extends Nette\Forms\Controls\BaseControl
      */
     public static function register($method = 'addImageSlave', $config)
     {
-        Container::extensionMethod($method, function(Container $container, $name, $label) use ($config)
+        Container::extensionMethod($method, function(
+            Container $container,
+            $name,
+            $label = NULL,
+            $multiple = NULL) use ($config)
         {
-            $container[$name] = new ImageSlaveControl($name, $label, $config);
+            $container[$name] = new ImageSlaveControl($name, $label, $multiple, $config);
             return $container[$name];
         });
     }

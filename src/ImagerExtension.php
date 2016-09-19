@@ -19,7 +19,7 @@ class ImagerExtension extends Nette\DI\CompilerExtension
         'path'          => 'img/',
         'useTimestamp'  => true,
         'allowDelete'   => true,
-        'emptyReturn'   => '',
+        'emptyReturn'   => NULL,
         'hiddenName'    => 'imageHidden',
         'deleteName'    => 'imageDelete',
         'valueFormat'   => 'string',
