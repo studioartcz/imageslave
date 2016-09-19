@@ -42,7 +42,7 @@ class ImagerExtension extends Nette\DI\CompilerExtension
 
         $init = $class->methods['initialize'];
         $config = $this->getConfig($this->defaults);
-        $init->addBody('\App\Components\Imager\ImageSlaveControl::register(?, ?);', ['addImagerUpload', $config]);
+        $init->addBody(ImageSlaveControl::class . '::register(?, ?);', ['addImagerUpload', $config]);
     }
 
 }

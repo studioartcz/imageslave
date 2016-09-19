@@ -1,4 +1,4 @@
 **Forms usage:**
 
 - $form = new Form();
-- $form->addImageSlave("picture", "Pretty picture");
+- $form->addImagerUpload("picture", "Pretty picture");
