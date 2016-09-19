@@ -1,5 +1,5 @@
 {
-  "name": "selectize-for-nette",
+  "name": "imageslave",
   "description": "Lightbox for thumbs preview @ Nette Framework",
   "main": [
     "client-side/magic.js"
