@@ -3,7 +3,7 @@ Nette plugin: Form extension for upload picture (JPG, PNG, SVG, ..) with thumbna
 
 Example in form:
 
-![Preview](images/preview.png)
+![Preview](https://raw.githubusercontent.com/studioartcz/imageslave/master/doc/images/preview.png)
 
 ## How install actual version
 
