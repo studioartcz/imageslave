@@ -19,7 +19,7 @@ class ImageSlaveExtension extends Nette\DI\CompilerExtension
         'path'          => 'img/',
         'useTimestamp'  => true,
         'allowDelete'   => true,
-        'emptyReturn'   => '',
+        'emptyReturn'   => NULL,
         'hiddenName'    => 'imageHidden',
         'deleteName'    => 'imageDelete',
         'valueFormat'   => 'string',
@@ -42,7 +42,7 @@ class ImageSlaveExtension extends Nette\DI\CompilerExtension
 
         $init = $class->methods['initialize'];
         $config = $this->getConfig($this->defaults);
-        $init->addBody('\App\Components\Imager\ImageSlaveControl::register(?, ?);', ['addImagerUpload', $config]);
+        $init->addBody(ImageSlaveControl::class . '::register(?, ?);', ['addImagerUpload', $config]);
     }
 
 }
