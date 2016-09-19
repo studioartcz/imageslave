@@ -1,0 +1,23 @@
+{
+  "name": "selectize-for-nette",
+  "description": "Lightbox for thumbs preview @ Nette Framework",
+  "main": [
+    "client-side/magic.js"
+  ],
+  "dependencies": {
+    "jquery": ">1.8"
+  },
+  "authors": [
+    "Michal Landsman https://github.com/studioartcz"
+  ],
+  "ignore": [
+    "src",
+    "composer.json"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "imager",
+    "form",
+    "nette"
+  ]
+}
