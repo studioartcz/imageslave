@@ -10,7 +10,7 @@ use Nette\PhpGenerator as Code;
  *
  * @author Michal Landsman <landsman@studioart.cz>
  */
-class ImagerExtension extends Nette\DI\CompilerExtension
+class ImageSlaveExtension extends Nette\DI\CompilerExtension
 {
     private $defaults =  [
         'width'         => 225,
