@@ -7,6 +7,7 @@ use Nette\Http\FileUpload;
 use Nette\Utils\Html;
 use Nette\Application\UI\Form;
 use Nette\Forms\Container;
+use Latte\Engine;
 use App\Components\ImageSlave;
 
 /**
@@ -221,103 +222,30 @@ class ImageSlaveControl extends Nette\Forms\Controls\BaseControl
         return $this->getValue() instanceof FileUpload ? $this->getValue()->isOk() : (bool) $this->getValue(); // ignore NULL object
     }
 
+
     /**
      * Generates control's HTML element.
      * @param  string
-     * @return Nette\Utils\Html
+     * @return Html|string
      */
-    public function getControl($caption = NULL)
+    public function getControl()
     {
         $this->setOption('rendered', TRUE);
 
-        $wrapper = Html::el('div', [
-            'class' => $this->options['wrapperClass']
+        $original = strpos($this->getValue(), ":") === false ? '.' . $this->getValue() : $this->getValue();
+        $svg      = strpos($this->getValue(), ".svg") !== false;
+
+        $latte = new Engine();
+        return $latte->renderToString($this->options['latte']['single'] ? $this->options['latte']['single'] : __DIR__ . '/templates/single.latte', [
+            'name'      => $this->name,
+            'nameDelete'=> $this->getActualContainer($this->options['deleteName']),
+            'nameHidden'=> $this->getActualContainer($this->options['hiddenName']),
+            'value'     => $this->getValue(),
+            'original'  => $original,
+            'type'      => $svg ? 'svg' : 'img',
+            'thumb'     => $svg ? $this->drawSvg() : $this->drawThumb(),
+            'config'    => $this->options,
         ]);
-        $output = $wrapper->startTag();
-        $name   = $this->getHtmlName();
-
-        if($this->getValue())
-        {
-            /**
-             * Link to original preview
-             */
-            $original = (strpos($this->getValue(), ":") === false ? '.' . $this->getValue() : $this->getValue());
-            $link = Html::el('a',
-                [
-                    'id'     => $this->getHtmlName(),
-                    'class'  => $this->options['lightboxClass'],
-                    'href'   => $original,
-                    'target' => '_blank',
-                    'title'  => $this->options['lang']['zoom']
-                ]
-            );
-
-            /**
-             * If we have SVG picture
-             */
-            if(strpos($this->getValue(), ".svg") !== false)
-            {
-                $content    = $this->drawSvg();
-                $img        = Html::el('div', ["class" => "svg-wrappper"])->setHtml($content);
-            }
-            else
-            {
-                $img = Html::el('img',
-                    [
-                        'src'   => $this->drawThumb(),
-                        'class' => $this->options['thumbClass']
-                    ]
-                );
-            }
-            $output.= $link->startTag() . $img . $link->endTag();
-        }
-
-
-        /**
-         * Delete by checkbox
-         */
-        if($this->getValue() && $this->options['allowDelete'])
-        {
-            $wrapperD = Html::el('div');
-            $label = Html::el('label',
-                [
-                    'class' => $this->options['deleteLabelClass'],
-                    'style' => $this->options['deleteLabelStyle'],
-                ]
-            );
-            $title = Html::el('span')->setText($this->options['lang']['delete']);
-            $checkbox = Html::el('input',
-                [
-                    'type'  => 'checkbox',
-                    'name'  => $this->getActualContainer($this->options['deleteName']),
-                    'class' => $this->options['deleteCheckboxClass'],
-                ]
-            );
-            $delete = $label->startTag() . $checkbox . $title . $label->endTag();
-            $output.= $wrapperD->startTag() . $delete . $wrapperD->endTag();
-        }
-
-        /**
-         * Uploader
-         */
-        $file = Html::el('input',
-            [
-                'type'  => 'file',
-                'name'  => $name,
-                'class' => $this->options['uploadClass']
-            ]
-        );
-        $hidden = Html::el('input',
-            [
-                'type'  => 'hidden',
-                'name'  => $this->getActualContainer($this->options['hiddenName']),
-                'value' => $this->getValue()
-            ]
-        );
-
-        $output.= $file . $hidden .  $wrapper->endTag();
-
-        return $output;
     }
 
     /**

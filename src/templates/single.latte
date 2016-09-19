@@ -1,0 +1,27 @@
+{block formUploader}
+    <style>
+        .labelDelete { margin-right: 5px }
+    </style>
+
+    <div class="well imageSlave">
+
+        <div n:if="$value">
+            {if "svg" == $type}
+                <div class="svg-wrappper">{$thumb|noescape}</div>
+            {else}
+                <a id="{$name}" class="{$config['lightboxClass']}" href="{$original}" target="_blank" title="{$config['lang']['zoom']}">
+                    <img src="{$thumb}" class="{$config['thumbClass']}" />
+                </a>
+            {/if}
+            <div>
+                <label class="{$config['deleteLabelClass']}">
+                    <input type="checkbox" name="{$nameDelete}" class="{$config['deleteCheckboxClass']}">
+                    <span>{$config['lang']['delete']}</span>
+                </label>
+            </div>
+            <input type="hidden" name="{$nameHidden}" value="{$value}">
+        </div>
+
+        <input type="file" name="{$name}" class="{$config['uploadClass']}">
+    </div>
+{/block}

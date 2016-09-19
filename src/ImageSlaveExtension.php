@@ -15,7 +15,7 @@ class ImageSlaveExtension extends Nette\DI\CompilerExtension
     private $defaults =  [
         'width'         => 225,
         'height'        => 150,
-        'wwwDir'        => __DIR__ . '../www',
+        'wwwDir'        => '%wwwDir%',
         'path'          => 'img/',
         'useTimestamp'  => true,
         'allowDelete'   => true,
@@ -26,13 +26,16 @@ class ImageSlaveExtension extends Nette\DI\CompilerExtension
         'wrapperClass'  => 'well iUploader',
         'lightboxClass' => 'lightbox',
         'thumbClass'    => 'img-thumbnail',
-        'deleteLabelClass'      => '',
+        'deleteLabelClass'      => 'labelDelete',
         'deleteLabelStyle'      => 'margin-right: 5px',
         'deleteCheckboxClass'   => 'styled',
         'uploadClass'           => 'form-control',
         'lang' => [
             'delete' => 'Smazat obrázek',
             'zoom'   => 'Klikněte pro originál'
+        ],
+        'latte' => [
+            'single' => null,
         ]
     ];
 
@@ -42,7 +45,7 @@ class ImageSlaveExtension extends Nette\DI\CompilerExtension
 
         $init = $class->methods['initialize'];
         $config = $this->getConfig($this->defaults);
-        $init->addBody('\App\Components\Imager\ImageSlaveControl::register(?, ?);', ['addImagerUpload', $config]);
+        $init->addBody('\App\Form\Control\ImageSlaveControl::register(?, ?);', ['addImageSlave', $config]);
     }
 
 }
