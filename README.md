@@ -11,7 +11,7 @@ Add via composer to your project:
 
     $ composer require studioartcz/imageslave @dev
 
-Add to extensions in your config.neon (fox advanced setup see [doc](doc/extension-setup.md))
+Add to extensions in your config.neon (for advanced setup see [doc](doc/extension-setup.md))
 
     extensions:
         imageslave: App\Form\Control\ImageSlaveExtension

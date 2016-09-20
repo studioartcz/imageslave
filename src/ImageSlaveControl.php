@@ -61,7 +61,6 @@ class ImageSlaveControl extends Nette\Forms\Controls\BaseControl
         //$this->control->multiple = false;
         $this->name = $name;
         $this->options = $config;
-
     }
 
     public function setPath($path)
@@ -158,7 +157,13 @@ class ImageSlaveControl extends Nette\Forms\Controls\BaseControl
     public function deleteImage()
     {
         $this->setValue($this->options['emptyReturn']);
-        unlink($this->options['wwwDir'] . $this->hidden);
+
+        $path = $this->options['wwwDir'] . $this->hidden;
+        if(file_exists($path))
+        {
+            unlink($path);
+        }
+
         $this->hidden = null;
     }
 
@@ -184,12 +189,25 @@ class ImageSlaveControl extends Nette\Forms\Controls\BaseControl
         return $withoutContainers ? $results[1] . "_" . $name : str_replace($results[1], $results[1] . "_" . $name, $parent);
     }
 
+    /**
+     * Todo: rename?
+     * Generate name with containers
+     * @param string $name
+     * @return string
+     */
     public function getActualContainer($name = "")
     {
         $parent = $this->getHTMLName();
         preg_match('~.*\K\[(.*)\]~s', $parent, $results);
-        $r = str_replace($results[0], '', $parent);
-        return $name ? $r . "[{$name}]" : $r;
+
+        if(null != $results && $name)
+        {
+            return str_replace($results[0], '', $parent) . "[{$name}]";
+        }
+        else
+        {
+            return $this->getHtmlName(). "_" .$name;
+        }
     }
 
     /**
@@ -237,7 +255,7 @@ class ImageSlaveControl extends Nette\Forms\Controls\BaseControl
 
         $latte = new Engine();
         return $latte->renderToString($this->options['latte']['single'] ? $this->options['latte']['single'] : __DIR__ . '/templates/single.latte', [
-            'name'      => $this->name,
+            'name'      => $this->getHtmlName(),
             'nameDelete'=> $this->getActualContainer($this->options['deleteName']),
             'nameHidden'=> $this->getActualContainer($this->options['hiddenName']),
             'value'     => $this->getValue(),
